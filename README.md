@@ -2,7 +2,7 @@
 ## The daily git author guessing game
 Given a commit message, can you guess who wrote it?
 
-https://github.com/JosephNaberhaus/gauthordle/blob/master/docs/example.mov
+https://github.com/JosephNaberhaus/gauthordle/assets/26124819/d43e249f-e7eb-4f32-9558-54f3303aeb35
 
 New games come out at midnight Central Time. Each game is deterministic generated from your git history. This allows everyone to play the same game each day without needing any servers.
 
