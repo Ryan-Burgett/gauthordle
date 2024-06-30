@@ -1,5 +1,4 @@
 # gauthordle
-## The daily git author guessing game
 Given a commit message, can you guess who wrote it?
 
 https://github.com/JosephNaberhaus/gauthordle/assets/26124819/d43e249f-e7eb-4f32-9558-54f3303aeb35
