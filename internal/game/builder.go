@@ -8,7 +8,7 @@ import (
 )
 
 // Increment to permanently change the RNG of the game.
-const seed = 3
+const seed = 10
 
 func BuildToday() (Puzzle, error) {
 	startTime, endTime := puzzleTimeRange()
