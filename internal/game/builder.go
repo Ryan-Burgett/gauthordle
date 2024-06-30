@@ -72,8 +72,7 @@ func puzzleTimeRange() (time.Time, time.Time) {
 	// End with commits from a year ago.
 	startDate := time.Date(gmtNow.Year()-1, gmtNow.Month(), gmtNow.Day(), 0, 0, 0, 0, gmtNow.Location())
 	// End with commits from a week ago to increase the odds that our user will have an up-to-date history.
-	// TODO: Remove temporary bypass for this.
-	endDate := time.Date(gmtNow.Year(), gmtNow.Month(), gmtNow.Day()+1, 0, 0, 0, 0, gmtNow.Location())
+	endDate := time.Date(gmtNow.Year(), gmtNow.Month(), gmtNow.Day()-7, 0, 0, 0, 0, gmtNow.Location())
 
 	return startDate, endDate
 }
