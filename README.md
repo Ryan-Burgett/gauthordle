@@ -1,4 +1,4 @@
 # gauthordle
-## Daily git author guessing game
+## The daily git author guessing game
 
 WIP
