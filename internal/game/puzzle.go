@@ -54,41 +54,26 @@ func (p Puzzle) Run() error {
 		printColorLn(":", textColorYellow)
 		ln()
 
-		for i := 0; i <= numPuzzleCommits; i++ {
-			if i <= stage {
-				printColor("Commit #", textColorGreen)
-				printColor(strconv.Itoa(i+1), textColorGreen)
-				printColor(": ", textColorGreen)
-				printColorLn(p.puzzleCommits[i].SubjectLine, textColorWhite)
-			} else {
-				// If this stage isn't active then at least insert an equivalent number of new lines.
-				// This ensures the game screen doesn't shift around too much.
-				ln()
-			}
+		for i := 0; i <= stage; i++ {
+			printColor("Commit #", textColorGreen)
+			printColor(strconv.Itoa(i+1), textColorGreen)
+			printColor(": ", textColorGreen)
+			printColorLn(p.puzzleCommits[i].SubjectLine, textColorWhite)
 		}
 
 		// Hints
 		ln()
 		if stage >= 1 {
+			ln()
 			printColorLn("Hints", textColorGreen)
 			printColor("Number of commits made by author in the last year: ", textColorGreen)
 			printColorLn(strconv.Itoa(p.hints.totalCommits), textColorWhite)
-		} else {
-			// If this stage isn't active then at least insert an equivalent number of new lines.
-			// This ensures the game screen doesn't shift around too much.
-			ln()
-			ln()
 		}
-		if stage >= 2 {
+		if stage >= 3 {
 			printColor("Author's most touched file: ", textColorGreen)
 			printColorLn(p.hints.mostTouchedFile, textColorWhite)
-		} else {
-			// If this stage isn't active then at least insert an equivalent number of new lines.
-			// This ensures the game screen doesn't shift around too much.
-			ln()
 		}
 
-		ln()
 		ln()
 		answerPrompt := &prompt.Select{
 			Question:      "Who is the author?",
