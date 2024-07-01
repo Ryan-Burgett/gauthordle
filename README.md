@@ -17,5 +17,5 @@ With any v1.21 or greater of [Golang](https://go.dev/) you can easily install fr
 go install github.com/josephnaberhaus/gauthordle@latest
 ```
 
-### Download binary
+### Installation from prebuilt binary
 Download and extract the appropriate binary for your platform on the [releases page](https://github.com/JosephNaberhaus/gauthordle/releases).
