@@ -1,8 +1,8 @@
 package game
 
 import (
-	"github.com/JosephNaberhaus/gauthordle/internal/git"
 	"github.com/JosephNaberhaus/prompt"
+	"github.com/josephnaberhaus/gauthordle/internal/git"
 	"strconv"
 	"time"
 )

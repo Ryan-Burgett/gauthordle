@@ -1,6 +1,6 @@
 package git
 
-import "github.com/JosephNaberhaus/gauthordle/internal/command"
+import "github.com/josephnaberhaus/gauthordle/internal/command"
 
 func IsGitInstalled() bool {
 	_, err := command.Run("git", "--version")

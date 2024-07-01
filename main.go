@@ -3,8 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
-	"github.com/JosephNaberhaus/gauthordle/internal/game"
-	"github.com/JosephNaberhaus/gauthordle/internal/git"
+	"github.com/josephnaberhaus/gauthordle/internal/game"
+	"github.com/josephnaberhaus/gauthordle/internal/git"
 	escapes "github.com/snugfox/ansi-escapes"
 	"os"
 )

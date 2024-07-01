@@ -3,7 +3,7 @@ package git
 import (
 	"errors"
 	"fmt"
-	"github.com/JosephNaberhaus/gauthordle/internal/command"
+	"github.com/josephnaberhaus/gauthordle/internal/command"
 	"strings"
 	"time"
 )

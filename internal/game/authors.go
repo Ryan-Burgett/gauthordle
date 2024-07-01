@@ -2,7 +2,7 @@ package game
 
 import (
 	"fmt"
-	"github.com/JosephNaberhaus/gauthordle/internal/git"
+	"github.com/josephnaberhaus/gauthordle/internal/git"
 	"math"
 	"math/rand"
 	"slices"
