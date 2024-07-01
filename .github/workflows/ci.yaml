@@ -1,12 +1,10 @@
-name: Release
+name: CI
 
 on:
   release:
     types:
       - created
   push:
-    branches:
-      - master
 
 jobs:
   release:
