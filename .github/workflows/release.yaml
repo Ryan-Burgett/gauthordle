@@ -1,0 +1,25 @@
+name: Release
+
+on:
+  release:
+    types:
+      - created
+  push:
+    branches:
+      - master
+
+jobs:
+  release:
+    name: Release Go Binary
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        goos: [linux, windows, darwin]
+        goarch: [amd64, arm64]
+    steps:
+      - name: Build binary
+        uses: JosephNaberhaus/actions/release-go-binary@v1.0.0
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          goos: ${{ matrix.goos }}
+          goarch: ${{ matrix.goarch }}
