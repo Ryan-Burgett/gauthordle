@@ -20,8 +20,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Build binary
-        uses: JosephNaberhaus/actions/release-go-binary@v1.0.0
+        uses: JosephNaberhaus/actions/release-go-binary@v1.1.0
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           goos: ${{ matrix.goos }}
           goarch: ${{ matrix.goarch }}
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Run tests
+        uses: JosephNaberhaus/actions/go-test@v1.1.0
