@@ -118,7 +118,7 @@ func filterCommitSubjects(commits []Commit) []Commit {
 		}
 
 		// Merge commits aren't helpful
-		if strings.HasPrefix(commit.SubjectLine, "Merge branch") {
+		if strings.Contains(commit.SubjectLine, "Merge branch") {
 			continue
 		}
 

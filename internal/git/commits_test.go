@@ -87,6 +87,9 @@ func TestFilterCommitSubjects(t *testing.T) {
 		{
 			SubjectLine: "Merge branch 'master' of...",
 		},
+		{
+			SubjectLine: "PREFIX Merge branch 'master' of...",
+		},
 	}
 
 	expected := []Commit{
