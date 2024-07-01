@@ -111,15 +111,15 @@ func filterCommitSubjects(commits []Commit) []Commit {
 			continue
 		}
 
+		// Merge commits aren't helpful
+		if strings.Contains(commit.SubjectLine, "Merge branch") {
+			continue
+		}
+
 		// Some authors use the same commit message over and over again.
 		// Remove the duplicates
 		if authorCommitSubjects[commit.AuthorEmail] == nil {
 			authorCommitSubjects[commit.AuthorEmail] = map[string]struct{}{}
-		}
-
-		// Merge commits aren't helpful
-		if strings.Contains(commit.SubjectLine, "Merge branch") {
-			continue
 		}
 
 		// No reason for this to be case sensitive

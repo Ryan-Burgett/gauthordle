@@ -30,7 +30,8 @@ func main() {
 		exit(errors.New("must be in a git repository"))
 	}
 
-	println("Building today's game...")
+	fmt.Println("Building today's game...")
+
 	puzzle, err := game.BuildToday()
 	if err != nil {
 		exit(err)
