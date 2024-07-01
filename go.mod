@@ -1,4 +1,4 @@
-module github.com/JosephNaberhaus/gauthordle
+module github.com/josephnaberhaus/gauthordle
 
 go 1.22.3
 
