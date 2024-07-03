@@ -3,6 +3,7 @@ package game
 import (
 	"github.com/JosephNaberhaus/prompt"
 	"github.com/josephnaberhaus/gauthordle/internal/git"
+	"github.com/josephnaberhaus/gauthordle/internal/output"
 	"strconv"
 	"time"
 )
@@ -43,38 +44,38 @@ func (p Puzzle) Run() error {
 	}
 
 	for stage := 0; stage < numPuzzleCommits; stage++ {
-		clearScreen()
-		printColorLn(header, textColorYellow)
-		ln()
+		output.ClearScreen()
+		output.PrintColorLn(header, output.Yellow)
+		output.Ln()
 
-		printColor("Guess the author of the following commit", textColorWhite)
+		output.PrintColor("Guess the author of the following commit", output.White)
 		if stage > 0 {
-			printColor("s", textColorYellow)
+			output.PrintColor("s", output.Yellow)
 		}
-		printColorLn(":", textColorYellow)
-		ln()
+		output.PrintColorLn(":", output.Yellow)
+		output.Ln()
 
 		for i := 0; i <= stage; i++ {
-			printColor("Commit #", textColorGreen)
-			printColor(strconv.Itoa(i+1), textColorGreen)
-			printColor(": ", textColorGreen)
-			printColorLn(p.puzzleCommits[i].SubjectLine, textColorWhite)
+			output.PrintColor("Commit #", output.Green)
+			output.PrintColor(strconv.Itoa(i+1), output.Green)
+			output.PrintColor(": ", output.Green)
+			output.PrintColorLn(p.puzzleCommits[i].SubjectLine, output.White)
 		}
 
 		// Hints
-		ln()
+		output.Ln()
 		if stage >= 1 {
-			ln()
-			printColorLn("Hints", textColorGreen)
-			printColor("Number of commits made by author in the last year: ", textColorGreen)
-			printColorLn(strconv.Itoa(p.hints.totalCommits), textColorWhite)
+			output.Ln()
+			output.PrintColorLn("Hints", output.Green)
+			output.PrintColor("Number of commits made by author in the last year: ", output.Green)
+			output.PrintColorLn(strconv.Itoa(p.hints.totalCommits), output.White)
 		}
 		if stage >= 3 {
-			printColor("Author's most touched file: ", textColorGreen)
-			printColorLn(p.hints.mostTouchedFile, textColorWhite)
+			output.PrintColor("Author's most touched file: ", output.Green)
+			output.PrintColorLn(p.hints.mostTouchedFile, output.White)
 		}
 
-		ln()
+		output.Ln()
 		answerPrompt := &prompt.Select{
 			Question:      "Who is the author?",
 			Options:       promptOptions,
@@ -86,32 +87,32 @@ func (p Puzzle) Run() error {
 		}
 
 		if answerPrompt.Response().ID == p.authorEmail {
-			flashMessage(youWin, textColorGreen)
+			flashMessage(youWin, output.Green)
 			break
 		} else {
 			if stage == numPuzzleCommits-1 {
-				flashMessage(youLose, textColorRed)
+				flashMessage(youLose, output.Red)
 			} else {
-				flashMessage(nope, textColorRed)
+				flashMessage(nope, output.Red)
 			}
 		}
 	}
 
-	ln()
-	printColor("The answer was: ", textColorWhite)
-	printColor(p.authorName, textColorWhite)
-	printColor(" (", textColorWhite)
-	printColor(p.authorEmail, textColorWhite)
-	printColorLn(")", textColorWhite)
-	ln()
+	output.Ln()
+	output.PrintColor("The answer was: ", output.White)
+	output.PrintColor(p.authorName, output.White)
+	output.PrintColor(" (", output.White)
+	output.PrintColor(p.authorEmail, output.White)
+	output.PrintColorLn(")", output.White)
+	output.Ln()
 
 	return nil
 }
 
-func flashMessage(message string, color textColor) {
-	clearScreen()
-	printColorLn(header, textColorYellow)
-	ln()
-	printColorLn(message, color)
+func flashMessage(message string, color output.Color) {
+	output.ClearScreen()
+	output.PrintColorLn(header, output.Yellow)
+	output.Ln()
+	output.PrintColorLn(message, color)
 	time.Sleep(1000 * time.Millisecond)
 }
