@@ -12,24 +12,24 @@ import (
 const seed = 0
 
 func BuildRandom() (Puzzle, error) {
-	return buildGame(rand.Intn)
+	return buildGame(rand.New(rand.NewSource(time.Now().Unix())))
 }
 
 func BuildToday() (Puzzle, error) {
 	startTime, _ := puzzleTimeRange()
 	// Make a random based on the end time so that it's stable throughout the day.
 	random := rand.New(rand.NewSource(startTime.Unix() + seed))
-	return buildGame(random.Intn)
+	return buildGame(random)
 }
 
-func buildGame(r func(int) int) (Puzzle, error) {
+func buildGame(random *rand.Rand) (Puzzle, error) {
 	startTime, endTime := puzzleTimeRange()
 	commits, err := git.GetCommits(startTime, endTime)
 	if err != nil {
 		return Puzzle{}, fmt.Errorf("error building puzzle: %w", err)
 	}
 
-	author, err := pickAuthor(commits, r)
+	author, err := pickAuthor(commits, random)
 	if err != nil {
 		return Puzzle{}, fmt.Errorf("error building puzzle: %w", err)
 	}
@@ -46,7 +46,7 @@ func buildGame(r func(int) int) (Puzzle, error) {
 		authorEmail:   author,
 		authorName:    authorNames[author],
 		authorCommits: commitsByAuthor[author],
-		puzzleCommits: pickPuzzleCommits(commitsByAuthor[author], r),
+		puzzleCommits: pickPuzzleCommits(commitsByAuthor[author], random),
 		hints: puzzleHints{
 			totalCommits:    len(commitsByAuthor[author]),
 			mostTouchedFile: mostTouchedFile,
@@ -56,11 +56,11 @@ func buildGame(r func(int) int) (Puzzle, error) {
 	}, nil
 }
 
-func pickPuzzleCommits(authorCommits []git.Commit, random func(int) int) [numPuzzleCommits]git.Commit {
+func pickPuzzleCommits(authorCommits []git.Commit, random *rand.Rand) [numPuzzleCommits]git.Commit {
 	var result [numPuzzleCommits]git.Commit
 	pickedIndices := map[int]struct{}{}
 	for i := 0; i < numPuzzleCommits; i++ {
-		index := random(len(authorCommits))
+		index := random.Intn(len(authorCommits))
 		if _, ok := pickedIndices[index]; ok {
 			// We've already picked this number. Try again.
 			i--

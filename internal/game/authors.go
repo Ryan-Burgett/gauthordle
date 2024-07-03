@@ -3,6 +3,7 @@ package game
 import (
 	"fmt"
 	"math"
+	"math/rand"
 	"slices"
 	"strings"
 
@@ -50,7 +51,7 @@ func allAuthorEmails(commits []git.Commit) []string {
 	return result
 }
 
-func pickAuthor(commits []git.Commit, random func(int) int) (string, error) {
+func pickAuthor(commits []git.Commit, random *rand.Rand) (string, error) {
 	numByAuthor := numCommitsByAuthorEmail(commits)
 	allAuthors := allAuthorEmails(commits)
 
@@ -80,7 +81,7 @@ func pickAuthor(commits []git.Commit, random func(int) int) (string, error) {
 	// A higher bias increases the likelihood that a high-contributing user will be picked.
 	const biasPower = float64(3.5)
 	randMax := math.Pow(float64(len(allAuthors)), biasPower)
-	randNumber := random(int(math.Floor(randMax)))
+	randNumber := random.Intn(int(math.Floor(randMax)))
 	index := int(math.Pow(float64(randNumber), 1/biasPower))
 
 	// Make sure that floating point error didn't put us in an invalid index
