@@ -2,25 +2,34 @@ package game
 
 import (
 	"fmt"
-	"github.com/josephnaberhaus/gauthordle/internal/git"
 	"math/rand"
 	"time"
+
+	"github.com/josephnaberhaus/gauthordle/internal/git"
 )
 
 // Increment to permanently change the RNG of the game.
 const seed = 0
 
+func BuildRandom() (Puzzle, error) {
+	return buildGame(rand.Intn)
+}
+
 func BuildToday() (Puzzle, error) {
-	startTime, endTime := puzzleTimeRange()
+	startTime, _ := puzzleTimeRange()
 	// Make a random based on the end time so that it's stable throughout the day.
 	random := rand.New(rand.NewSource(startTime.Unix() + seed))
+	return buildGame(random.Intn)
+}
 
+func buildGame(r func(int) int) (Puzzle, error) {
+	startTime, endTime := puzzleTimeRange()
 	commits, err := git.GetCommits(startTime, endTime)
 	if err != nil {
 		return Puzzle{}, fmt.Errorf("error building puzzle: %w", err)
 	}
 
-	author, err := pickAuthor(commits, random)
+	author, err := pickAuthor(commits, r)
 	if err != nil {
 		return Puzzle{}, fmt.Errorf("error building puzzle: %w", err)
 	}
@@ -37,7 +46,7 @@ func BuildToday() (Puzzle, error) {
 		authorEmail:   author,
 		authorName:    authorNames[author],
 		authorCommits: commitsByAuthor[author],
-		puzzleCommits: pickPuzzleCommits(commitsByAuthor[author], random),
+		puzzleCommits: pickPuzzleCommits(commitsByAuthor[author], r),
 		hints: puzzleHints{
 			totalCommits:    len(commitsByAuthor[author]),
 			mostTouchedFile: mostTouchedFile,
@@ -47,11 +56,11 @@ func BuildToday() (Puzzle, error) {
 	}, nil
 }
 
-func pickPuzzleCommits(authorCommits []git.Commit, random *rand.Rand) [numPuzzleCommits]git.Commit {
+func pickPuzzleCommits(authorCommits []git.Commit, random func(int) int) [numPuzzleCommits]git.Commit {
 	var result [numPuzzleCommits]git.Commit
 	pickedIndices := map[int]struct{}{}
 	for i := 0; i < numPuzzleCommits; i++ {
-		index := random.Intn(len(authorCommits))
+		index := random(len(authorCommits))
 		if _, ok := pickedIndices[index]; ok {
 			// We've already picked this number. Try again.
 			i--
