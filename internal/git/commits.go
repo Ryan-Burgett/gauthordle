@@ -1,11 +1,16 @@
 package git
 
 import (
+	"cmp"
 	"errors"
 	"fmt"
-	"github.com/josephnaberhaus/gauthordle/internal/command"
+	"regexp"
+	"slices"
 	"strings"
 	"time"
+
+	"github.com/josephnaberhaus/gauthordle/internal/command"
+	"github.com/josephnaberhaus/gauthordle/internal/config"
 )
 
 type Commit struct {
@@ -46,6 +51,18 @@ func GetCommits(start, end time.Time) ([]Commit, error) {
 	}
 
 	commits = filterOutBots(commits)
+
+	// TODO we could be smarter about loading/compiling the regular expressions just once.
+	cfg, err := config.Load()
+	if err != nil {
+		return nil, err
+	}
+
+	commits, err = filterForConfig(commits, cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	commits = consolidateAuthorDetails(commits)
 	commits = filterCommitSubjects(commits)
 
@@ -72,6 +89,43 @@ func filterOutBots(commits []Commit) []Commit {
 	}
 
 	return result
+}
+
+// filterForConfig filters out commits according to the user's config as defined in the config
+// package.
+func filterForConfig(commits []Commit, cfg config.Config) ([]Commit, error) {
+	nameFilters := make([]*regexp.Regexp, 0, len(cfg.AuthorFilters))
+	emailFilters := make([]*regexp.Regexp, 0, len(cfg.AuthorFilters))
+	for _, filter := range cfg.AuthorFilters {
+		r, err := regexp.Compile(
+			cmp.Or(filter.ExcludeName, filter.ExcludeEmail),
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if filter.ExcludeName != "" {
+			nameFilters = append(nameFilters, r)
+		} else {
+			emailFilters = append(emailFilters, r)
+		}
+	}
+
+	shouldDelete := func(commit Commit) bool {
+		for _, f := range nameFilters {
+			if f.MatchString(commit.AuthorName) {
+				return true
+			}
+		}
+		for _, f := range emailFilters {
+			if f.MatchString(commit.AuthorEmail) {
+				return true
+			}
+		}
+		return false
+	}
+
+	return slices.DeleteFunc(commits, shouldDelete), nil
 }
 
 // consolidateAuthorNames ensures that each e-mail address is associated with only one author name.
