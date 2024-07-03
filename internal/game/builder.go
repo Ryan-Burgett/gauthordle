@@ -2,6 +2,8 @@ package game
 
 import (
 	"fmt"
+	"github.com/josephnaberhaus/gauthordle/internal/commit"
+	"github.com/josephnaberhaus/gauthordle/internal/config"
 	"math/rand"
 	"time"
 
@@ -23,10 +25,14 @@ func BuildToday() (Puzzle, error) {
 }
 
 func buildGame(random *rand.Rand) (Puzzle, error) {
-	startTime, endTime := puzzleTimeRange()
-	commits, err := git.GetCommits(startTime, endTime)
+	cfg, err := config.Load()
 	if err != nil {
-		return Puzzle{}, fmt.Errorf("error building puzzle: %w", err)
+		return Puzzle{}, err
+	}
+
+	commits, err := getCommits(cfg)
+	if err != nil {
+		return Puzzle{}, err
 	}
 
 	author, err := pickAuthor(commits, random)
@@ -54,6 +60,25 @@ func buildGame(random *rand.Rand) (Puzzle, error) {
 		allCommits:     commits,
 		allAuthorNames: authorNames,
 	}, nil
+}
+
+func getCommits(cfg config.Config) ([]git.Commit, error) {
+	startTime, endTime := puzzleTimeRange()
+	filter, err := commit.BuildFilter(
+		commit.WithStartTime(startTime),
+		commit.WithEndTime(endTime),
+		commit.WithConfig(cfg),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("error when building commit filter: %w", err)
+	}
+
+	commits, err := filter.GetCommits()
+	if err != nil {
+		return nil, fmt.Errorf("error when getting filtered commits %w", err)
+	}
+
+	return commits, nil
 }
 
 func pickPuzzleCommits(authorCommits []git.Commit, random *rand.Rand) [numPuzzleCommits]git.Commit {
