@@ -64,17 +64,21 @@ func buildGame(random *rand.Rand) (Puzzle, error) {
 
 func getCommits(cfg config.Config) ([]git.Commit, error) {
 	startTime, endTime := puzzleTimeRange()
-	commits, err := git.GetCommits(startTime, endTime)
+	filter, err := commit.BuildFilter(
+		commit.WithStartTime(startTime),
+		commit.WithEndTime(endTime),
+		commit.WithConfig(cfg),
+	)
 	if err != nil {
-		return nil, fmt.Errorf("error building puzzle: %w", err)
+		return nil, fmt.Errorf("error when building commit filter: %w", err)
 	}
 
-	filter, err := commit.BuildFilter(commit.WithConfig(cfg))
+	commits, err := filter.GetCommits()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error when getting filtered commits %w", err)
 	}
 
-	return filter.Filter(commits), nil
+	return commits, nil
 }
 
 func pickPuzzleCommits(authorCommits []git.Commit, random *rand.Rand) [numPuzzleCommits]git.Commit {

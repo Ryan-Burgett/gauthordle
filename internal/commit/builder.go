@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/josephnaberhaus/gauthordle/internal/config"
 	"regexp"
+	"time"
 )
 
 type FilterOption func(filter *Filter) error
@@ -37,6 +38,22 @@ func WithConfig(cfg config.Config) FilterOption {
 				filter.emailFilters = append(filter.emailFilters, r)
 			}
 		}
+
+		return nil
+	}
+}
+
+func WithStartTime(startTime time.Time) FilterOption {
+	return func(filter *Filter) error {
+		filter.startTime = startTime
+
+		return nil
+	}
+}
+
+func WithEndTime(endTime time.Time) FilterOption {
+	return func(filter *Filter) error {
+		filter.endTime = endTime
 
 		return nil
 	}

@@ -1,18 +1,34 @@
 package commit
 
 import (
+	"fmt"
 	"github.com/josephnaberhaus/gauthordle/internal/git"
 	"regexp"
 	"slices"
 	"strings"
+	"time"
 )
 
 type Filter struct {
+	startTime, endTime time.Time
+
 	nameFilters  []*regexp.Regexp
 	emailFilters []*regexp.Regexp
 }
 
-func (f *Filter) Filter(commits []git.Commit) []git.Commit {
+func (f *Filter) GetCommits() ([]git.Commit, error) {
+	if f.startTime.IsZero() {
+		return nil, fmt.Errorf("no start time specified")
+	}
+	if f.endTime.IsZero() {
+		return nil, fmt.Errorf("no end time specified")
+	}
+
+	commits, err := git.GetCommits(f.startTime, f.endTime)
+	if err != nil {
+		return nil, err
+	}
+
 	type filterFunc func([]git.Commit) []git.Commit
 	filters := []filterFunc{
 		f.filterForConfig,
@@ -24,7 +40,7 @@ func (f *Filter) Filter(commits []git.Commit) []git.Commit {
 		commits = filter(commits)
 	}
 
-	return commits
+	return commits, nil
 }
 
 // filterBots attempts to filter bot-made commits out.
