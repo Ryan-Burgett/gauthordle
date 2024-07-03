@@ -2,11 +2,13 @@ package main
 
 import (
 	"errors"
+	"flag"
 	"fmt"
+	"os"
+
 	"github.com/josephnaberhaus/gauthordle/internal/game"
 	"github.com/josephnaberhaus/gauthordle/internal/git"
 	escapes "github.com/snugfox/ansi-escapes"
-	"os"
 )
 
 const help = "A daily game where you try to guess the author of some Git commits.\n\nTo play, simply \"git checkout\" the main development branch of your repository\nand run this program with no arguments.\n\nNew games start at midnight Central Time."
@@ -17,8 +19,14 @@ func exit(err error) {
 }
 
 func main() {
-	if len(os.Args) > 1 {
+	random := flag.Bool("random", false, "If true, play a random game instead of the daily game.")
+	flag.Parse()
+
+	if len(flag.Args()) > 0 {
 		fmt.Println(help)
+		fmt.Println()
+
+		flag.Usage()
 		os.Exit(0)
 	}
 
@@ -32,7 +40,13 @@ func main() {
 
 	fmt.Println("Building today's game...")
 
-	puzzle, err := game.BuildToday()
+	var puzzle game.Puzzle
+	var err error
+	if *random {
+		puzzle, err = game.BuildRandom()
+	} else {
+		puzzle, err = game.BuildToday()
+	}
 	if err != nil {
 		exit(err)
 	}
