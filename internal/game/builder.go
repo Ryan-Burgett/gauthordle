@@ -2,19 +2,28 @@ package game
 
 import (
 	"fmt"
-	"github.com/josephnaberhaus/gauthordle/internal/git"
 	"math/rand"
 	"time"
+
+	"github.com/josephnaberhaus/gauthordle/internal/git"
 )
 
 // Increment to permanently change the RNG of the game.
 const seed = 0
 
+func BuildRandom() (Puzzle, error) {
+	return buildGame(rand.New(rand.NewSource(time.Now().Unix())))
+}
+
 func BuildToday() (Puzzle, error) {
-	startTime, endTime := puzzleTimeRange()
+	startTime, _ := puzzleTimeRange()
 	// Make a random based on the end time so that it's stable throughout the day.
 	random := rand.New(rand.NewSource(startTime.Unix() + seed))
+	return buildGame(random)
+}
 
+func buildGame(random *rand.Rand) (Puzzle, error) {
+	startTime, endTime := puzzleTimeRange()
 	commits, err := git.GetCommits(startTime, endTime)
 	if err != nil {
 		return Puzzle{}, fmt.Errorf("error building puzzle: %w", err)

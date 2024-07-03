@@ -2,11 +2,12 @@ package game
 
 import (
 	"fmt"
-	"github.com/josephnaberhaus/gauthordle/internal/git"
 	"math"
 	"math/rand"
 	"slices"
 	"strings"
+
+	"github.com/josephnaberhaus/gauthordle/internal/git"
 )
 
 func commitsByAuthorEmail(commits []git.Commit) map[string][]git.Commit {
