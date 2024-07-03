@@ -1,16 +1,15 @@
-package git
+package commit
 
 import (
-	"slices"
-	"testing"
-
 	"github.com/josephnaberhaus/gauthordle/internal/config"
+	"github.com/josephnaberhaus/gauthordle/internal/git"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"testing"
 )
 
-func TestFilterOutBots(t *testing.T) {
-	input := []Commit{
+func TestFilter_Filter_FilterOutBots(t *testing.T) {
+	input := []git.Commit{
 		{
 			AuthorName:  "Real person",
 			AuthorEmail: "joe.smith@example.com",
@@ -25,18 +24,21 @@ func TestFilterOutBots(t *testing.T) {
 		},
 	}
 
-	expected := []Commit{
+	expected := []git.Commit{
 		{
 			AuthorName:  "Real person",
 			AuthorEmail: "joe.smith@example.com",
 		},
 	}
 
-	assert.Equal(t, expected, filterOutBots(input))
+	filter, err := BuildFilter()
+	require.NoError(t, err)
+
+	assert.Equal(t, expected, filter.filterOutBots(input))
 }
 
-func TestFilterForConfig(t *testing.T) {
-	input := []Commit{
+func TestFilter_Filter_FiltersForConfig(t *testing.T) {
+	input := []git.Commit{
 		{
 			AuthorName:  "Person 1",
 			AuthorEmail: "abc@abc.com",
@@ -54,7 +56,7 @@ func TestFilterForConfig(t *testing.T) {
 	tests := []struct {
 		desc string
 		cfg  config.Config
-		exp  []Commit
+		exp  []git.Commit
 	}{{
 		desc: "empty config should keep all",
 		cfg:  config.Config{},
@@ -66,7 +68,7 @@ func TestFilterForConfig(t *testing.T) {
 				ExcludeName: "2",
 			}},
 		},
-		exp: []Commit{input[0], input[2]},
+		exp: []git.Commit{input[0], input[2]},
 	}, {
 		desc: "filter by email",
 		cfg: config.Config{
@@ -74,7 +76,7 @@ func TestFilterForConfig(t *testing.T) {
 				ExcludeEmail: "ghi",
 			}},
 		},
-		exp: []Commit{input[0], input[1]},
+		exp: []git.Commit{input[0], input[1]},
 	}, {
 		desc: "specify name and email, prefer name",
 		cfg: config.Config{
@@ -83,7 +85,7 @@ func TestFilterForConfig(t *testing.T) {
 				ExcludeEmail: "ghi",
 			}},
 		},
-		exp: []Commit{input[0], input[2]},
+		exp: []git.Commit{input[0], input[2]},
 	}, {
 		desc: "specify multiple filters",
 		cfg: config.Config{
@@ -93,7 +95,7 @@ func TestFilterForConfig(t *testing.T) {
 				ExcludeEmail: "ghi",
 			}},
 		},
-		exp: []Commit{input[0]},
+		exp: []git.Commit{input[0]},
 	}, {
 		desc: "filter by name regexp",
 		cfg: config.Config{
@@ -101,7 +103,7 @@ func TestFilterForConfig(t *testing.T) {
 				ExcludeName: "[2-3]",
 			}},
 		},
-		exp: []Commit{input[0]},
+		exp: []git.Commit{input[0]},
 	}, {
 		desc: "filter by email regexp",
 		cfg: config.Config{
@@ -109,20 +111,21 @@ func TestFilterForConfig(t *testing.T) {
 				ExcludeEmail: "(abc|def)",
 			}},
 		},
-		exp: []Commit{input[2]},
+		exp: []git.Commit{input[2]},
 	}}
 
 	for _, tc := range tests {
 		t.Run(tc.desc, func(t *testing.T) {
-			commits, err := filterForConfig(slices.Clone(input), tc.cfg)
+			filter, err := BuildFilter(WithConfig(tc.cfg))
 			require.NoError(t, err)
-			assert.Equal(t, tc.exp, commits)
+
+			assert.Equal(t, tc.exp, filter.filterForConfig(input))
 		})
 	}
 }
 
-func TestConsolidateAuthorDetails(t *testing.T) {
-	input := []Commit{
+func TestFilter_Filter_ConsolidatesAuthorDetails(t *testing.T) {
+	input := []git.Commit{
 		{
 			AuthorName:  "Joe Smith",
 			AuthorEmail: "jOe.smith@example.com",
@@ -133,7 +136,7 @@ func TestConsolidateAuthorDetails(t *testing.T) {
 		},
 	}
 
-	expected := []Commit{
+	expected := []git.Commit{
 		{
 			AuthorName:  "Joseph Smith",
 			AuthorEmail: "joe.smith@example.com",
@@ -144,11 +147,14 @@ func TestConsolidateAuthorDetails(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, expected, consolidateAuthorDetails(input))
+	filter, err := BuildFilter()
+	require.NoError(t, err)
+
+	assert.Equal(t, expected, filter.consolidateAuthorDetails(input))
 }
 
-func TestFilterCommitSubjects(t *testing.T) {
-	input := []Commit{
+func TestFilter_Filter_FiltersCommitSubjects(t *testing.T) {
+	input := []git.Commit{
 		{
 			AuthorEmail: "joe.smith@example.com",
 			SubjectLine: "duplicated commit message",
@@ -182,7 +188,7 @@ func TestFilterCommitSubjects(t *testing.T) {
 		},
 	}
 
-	expected := []Commit{
+	expected := []git.Commit{
 		{
 			AuthorEmail: "joe.smith@example.com",
 			SubjectLine: "duplicated commit message",
@@ -196,5 +202,8 @@ func TestFilterCommitSubjects(t *testing.T) {
 		},
 	}
 
-	assert.Equal(t, expected, filterCommitSubjects(input))
+	filter, err := BuildFilter()
+	require.NoError(t, err)
+
+	assert.Equal(t, expected, filter.filterCommitSubjects(input))
 }

@@ -1,16 +1,12 @@
 package git
 
 import (
-	"cmp"
 	"errors"
 	"fmt"
-	"regexp"
-	"slices"
 	"strings"
 	"time"
 
 	"github.com/josephnaberhaus/gauthordle/internal/command"
-	"github.com/josephnaberhaus/gauthordle/internal/config"
 )
 
 type Commit struct {
@@ -50,145 +46,7 @@ func GetCommits(start, end time.Time) ([]Commit, error) {
 		})
 	}
 
-	commits = filterOutBots(commits)
-
-	// TODO we could be smarter about loading/compiling the regular expressions just once.
-	cfg, err := config.Load()
-	if err != nil {
-		return nil, err
-	}
-
-	commits, err = filterForConfig(commits, cfg)
-	if err != nil {
-		return nil, err
-	}
-
-	commits = consolidateAuthorDetails(commits)
-	commits = filterCommitSubjects(commits)
-
 	return commits, nil
-}
-
-// filterBots attempts to filter bot-made commits out.
-// It's impossible to cover all cases here, but we'll make a best effort.
-func filterOutBots(commits []Commit) []Commit {
-	var result []Commit
-	for _, commit := range commits {
-		// E-mails with "noreply" in them are usually associated with bots.
-		if strings.Contains(commit.AuthorEmail, "noreply") {
-			continue
-		}
-
-		// Often robots won't have a proper "<First> <Last>" name (with a space separator).
-		// This is going to have many false positives, but in the repos I tested it is more fun.
-		if !strings.Contains(commit.AuthorName, " ") {
-			continue
-		}
-
-		result = append(result, commit)
-	}
-
-	return result
-}
-
-// filterForConfig filters out commits according to the user's config as defined in the config
-// package.
-func filterForConfig(commits []Commit, cfg config.Config) ([]Commit, error) {
-	nameFilters := make([]*regexp.Regexp, 0, len(cfg.AuthorFilters))
-	emailFilters := make([]*regexp.Regexp, 0, len(cfg.AuthorFilters))
-	for _, filter := range cfg.AuthorFilters {
-		r, err := regexp.Compile(
-			cmp.Or(filter.ExcludeName, filter.ExcludeEmail),
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		if filter.ExcludeName != "" {
-			nameFilters = append(nameFilters, r)
-		} else {
-			emailFilters = append(emailFilters, r)
-		}
-	}
-
-	shouldDelete := func(commit Commit) bool {
-		for _, f := range nameFilters {
-			if f.MatchString(commit.AuthorName) {
-				return true
-			}
-		}
-		for _, f := range emailFilters {
-			if f.MatchString(commit.AuthorEmail) {
-				return true
-			}
-		}
-		return false
-	}
-
-	return slices.DeleteFunc(commits, shouldDelete), nil
-}
-
-// consolidateAuthorNames ensures that each e-mail address is associated with only one author name.
-func consolidateAuthorDetails(commits []Commit) []Commit {
-	result := make([]Commit, len(commits))
-	emailToAuthorName := map[string]string{}
-
-	// Go backwards so that we use the most recently used name
-	for i := len(commits) - 1; i >= 0; i-- {
-		commit := commits[i]
-
-		// E-mails are not case-sensitive, so lower-case it.
-		authorEmail := strings.ToLower(commit.AuthorEmail)
-		commit.AuthorEmail = authorEmail
-
-		if _, ok := emailToAuthorName[authorEmail]; !ok {
-			// This is the first time we have encountered this e-mail.
-			emailToAuthorName[authorEmail] = commit.AuthorName
-		} else {
-			// We've encountered this e-mail before. Make sure we use that same name.
-			commit.AuthorName = emailToAuthorName[authorEmail]
-		}
-
-		result[i] = commit
-	}
-
-	return result
-}
-
-// filterCommitSubjects ensures that we only use interesting commit subjects
-func filterCommitSubjects(commits []Commit) []Commit {
-	var result []Commit
-	authorCommitSubjects := map[string]map[string]struct{}{}
-	for _, commit := range commits {
-		// Commit messages with only 1-2 words don't get you very much information.
-		if len(strings.Split(commit.SubjectLine, " ")) < 3 {
-			continue
-		}
-
-		// Merge commits aren't helpful
-		if strings.Contains(commit.SubjectLine, "Merge branch") {
-			continue
-		}
-
-		// Some authors use the same commit message over and over again.
-		// Remove the duplicates
-		if authorCommitSubjects[commit.AuthorEmail] == nil {
-			authorCommitSubjects[commit.AuthorEmail] = map[string]struct{}{}
-		}
-
-		// No reason for this to be case sensitive
-		subjectLine := strings.ToLower(commit.SubjectLine)
-
-		authorCommits := authorCommitSubjects[commit.AuthorEmail]
-		if _, ok := authorCommits[subjectLine]; ok {
-			continue
-		}
-		authorCommits[subjectLine] = struct{}{}
-
-		result = append(result, commit)
-	}
-
-	return result
 }
 
 // GetFilesChangedForAuthor gets all the files touched be the given user.
