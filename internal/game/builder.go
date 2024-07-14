@@ -12,6 +12,7 @@ import (
 type builder struct {
 	randomSource rand.Source
 	commits      []git.Commit
+	files        []string
 	authorBias   float64
 }
 
@@ -29,12 +30,19 @@ func WithCommits(commits []git.Commit) Option {
 	}
 }
 
+func WithFiles(files []string) Option {
+	return func(b *builder) {
+		b.files = files
+	}
+}
+
 func WithAuthorBias(authorBias float64) Option {
 	return func(b *builder) {
 		b.authorBias = authorBias
 	}
 }
 
+// TODO add ability to generate game based on filetypes
 func BuildPuzzle(opts ...Option) (Puzzle, error) {
 	b := new(builder)
 	for _, opt := range opts {

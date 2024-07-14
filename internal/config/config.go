@@ -17,9 +17,16 @@ type AuthorFilter struct {
 	ExcludeEmail string `yaml:"exclude_email"`
 }
 
+type FileTypeFilter struct {
+	// ExcludeFileType is a regular expression dictating which file types should be excluded.
+	ExcludeFileType string `yaml:"exclude_file_type"`
+}
+
 type Config struct {
 	// AuthorFilters are filters that will remove the specified authors from the game.
 	AuthorFilters []AuthorFilter `yaml:"author_filters"`
+	// FileTypeFilters are filters that will remove the specified file types from the game.
+	FileTypeFilters []FileTypeFilter `yaml:"file_type_filters"`
 	// Teams is a map from team name to the members of that team.
 	Teams map[string]Team `yaml:"teams"`
 	// AuthorBias is how much to bias towards authors with high commit counts.
